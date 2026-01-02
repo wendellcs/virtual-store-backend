@@ -1,6 +1,9 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends
 import cloudinary.uploader
-from database.mongo import collection, db
+from services.auth import admin_guard
+from database.mongo import collection
+from bson.objectid import ObjectId
+
 
 router = APIRouter(
     prefix='/products',
@@ -16,10 +19,6 @@ async def get_products():
     products = list(collection.find())
     products = [serialize_mongo(p) for p in products]
     return products
-
-@router.get('/{product_id}')
-def get_product(product_id: int) -> dict:
-    return {'product': 'example'}
 
 @router.post('/')
 async def create_product(
@@ -45,10 +44,17 @@ async def create_product(
         'parts': parts,
         'partsPrice': partsPrice,
         'productLink': productLink,
-        'imageUrl': result['secure_url']
+        'imageUrl': result['secure_url'],
+        'imagePublicId': result['public_id']
     }
-
     collection.insert_one(product)
 
     return {'ok': True}
 
+@router.delete('/{product_id}')
+async def delete_product(product_id: str , _: None = Depends(admin_guard)): 
+    # Mudar para find_one
+    productPublicId = collection.find({}, {'imagePublicId':1,'_id': ObjectId(product_id)})[0]['imagePublicId']
+    cloudinary.uploader.destroy(productPublicId)
+    collection.delete_one({'_id': ObjectId(product_id)})
+    return {'ok': True}
