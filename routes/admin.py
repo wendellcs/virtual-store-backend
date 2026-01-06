@@ -16,17 +16,23 @@ async def admin_login(data: LoginSchema, request: Request, response: Response):
     if not ip_allowed(request.client.host):
         raise HTTPException(status_code=403, detail="IP não autorizado")
     
+    print('ip OK')
+    
     if not valid_login_data(data):
         raise HTTPException( status_code=401, detail="Acesso negado")
+    
+    print('login data OK')
     
     response.set_cookie(
         key='admin_session',
         value='admin_logged', # Mudar para token
         httponly=True,
-        secure=False, # Em produção, mudar para true.
-        samesite='lax',
+        secure=True, # Em produção, mudar para true.
+        samesite='none',
         max_age= 60 * 60 # 1 hora
     )
+
+    print('tudo certo')
 
     return {'ok': True}
 

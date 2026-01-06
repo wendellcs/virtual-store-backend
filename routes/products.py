@@ -23,7 +23,6 @@ async def get_products():
 @router.post('/')
 async def create_product(
     name: str = Form(...), 
-    description: str = Form(...), 
     tag: str = Form(...),
     price: float = Form(...),
     parts: int = Form(...),
@@ -38,7 +37,6 @@ async def create_product(
 
     product = {
         'name': name,
-        'description': description,
         'tag': tag,
         'price': price,
         'parts': parts,
