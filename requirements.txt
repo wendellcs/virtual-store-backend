@@ -4,3 +4,5 @@ pymongo
 python-dotenv
 cloudinary
 python-multipart
+pymongo>=4.6
+dnspython>=2.4
