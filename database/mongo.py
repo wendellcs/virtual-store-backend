@@ -13,7 +13,6 @@ client = MongoClient(
     MONGO_URL,     
     tls=True,
     tlsAllowInvalidCertificates=False,
-    ssl_cert_reqs=ssl.CERT_REQUIRED
 )
 
 db = client['compra-facil']
