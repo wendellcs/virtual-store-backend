@@ -14,13 +14,13 @@ def serialize_mongo(doc):
     doc['_id'] = str(doc['_id'])
     return doc
 
-@router.get('/')
+@router.get('')
 async def get_products():
     products = list(collection.find())
     products = [serialize_mongo(p) for p in products]
     return products
 
-@router.post('/')
+@router.post('')
 async def create_product(
     name: str = Form(...), 
     tag: str = Form(...),
