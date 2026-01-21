@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Request, Response, HTTPException, Depends
-from services.auth import ip_allowed, admin_guard, valid_login_data
+from fastapi import APIRouter, Response, HTTPException, Depends
+from services.auth import admin_guard, valid_login_data
 from models.login import LoginSchema
 
 router = APIRouter(
@@ -12,12 +12,7 @@ async def access_to_dashboard(_: None = Depends(admin_guard)):
     return {'dados': 'somente admin'}
 
 @router.post('/login')
-async def admin_login(data: LoginSchema, request: Request, response: Response):
-    if not ip_allowed(request.client.host):
-        raise HTTPException(status_code=403, detail="IP não autorizado")
-    
-    print('ip OK')
-    
+async def admin_login(data: LoginSchema, response: Response):
     if not valid_login_data(data):
         raise HTTPException( status_code=401, detail="Acesso negado")
     
