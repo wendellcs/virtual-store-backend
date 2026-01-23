@@ -8,7 +8,7 @@ from routes import admin, products
 load_dotenv()
 app = FastAPI()
 
-origins = [os.getenv("DEV_URL")]
+origins = [os.getenv("DEV_URL"), os.getenv('PROD_URL')]
 
 app.add_middleware(
     CORSMiddleware,
