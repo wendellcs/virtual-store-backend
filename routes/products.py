@@ -1,9 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends, Query
 import cloudinary.uploader
 from services.auth import admin_guard
 from database.mongo import collection
 from bson.objectid import ObjectId
-
 
 router = APIRouter(
     prefix='/products',
@@ -17,6 +16,18 @@ def serialize_mongo(doc):
 @router.get('')
 async def get_products():
     products = list(collection.find())
+    products = [serialize_mongo(p) for p in products]
+    return products
+
+@router.get("/search")
+def search_products(q: str = Query(..., min_length=2)):
+    products = collection.find({
+        "name": {
+            "$regex": q,
+            "$options": "i"
+        }
+
+    })
     products = [serialize_mongo(p) for p in products]
     return products
 
