@@ -3,6 +3,7 @@ import cloudinary.uploader
 from services.auth import admin_guard
 from database.mongo import collection
 from bson.objectid import ObjectId
+from datetime import date
 
 router = APIRouter(
     prefix='/products',
@@ -54,7 +55,9 @@ async def create_product(
         'partsPrice': partsPrice,
         'productLink': productLink,
         'imageUrl': result['secure_url'],
-        'imagePublicId': result['public_id']
+        'imagePublicId': result['public_id'],
+        'views': 0,
+        'created_at': date.today()
     }
     collection.insert_one(product)
 
