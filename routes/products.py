@@ -42,10 +42,14 @@ async def create_product(
     productLink: str = Form(...),
     image: UploadFile = File(...)
 ):
+    
+    print('Parte 1 OKAY')
     if not image.content_type.startswith('image/'):
         raise HTTPException(400, 'Apenas imagens')
 
     result = cloudinary.uploader.upload(image.file, folder = 'produtos')
+
+    print('Parte 2 OKAY', result)
 
     product = {
         'name': name,
@@ -57,9 +61,13 @@ async def create_product(
         'imageUrl': result['secure_url'],
         'imagePublicId': result['public_id'],
         'views': 0,
-        'created_at': date.today()
+        'created_at': str(date.today())
     }
+    print(product)
     collection.insert_one(product)
+
+    print('Ultima parte ---------')
+
 
     return {'ok': True}
 
