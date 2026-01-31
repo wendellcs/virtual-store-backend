@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends, Query
+from math import ceil
 import cloudinary.uploader
 from services.auth import admin_guard
 from database.mongo import collection
@@ -15,22 +16,48 @@ def serialize_mongo(doc):
     return doc
 
 @router.get('')
-async def get_products():
-    products = list(collection.find())
+async def get_products(
+    page: int = Query (1 , ge = 1),
+    limit: int = Query (10, ge = 1 , le = 100)
+):
+    skip = (page - 1) * limit
+
+    products = list(collection.find().skip(skip).limit(limit))
     products = [serialize_mongo(p) for p in products]
-    return products
+
+    total = collection.count_documents({})
+
+    return {
+        'page': page,
+        'limit': limit,
+        'total': total,
+        'pages': ceil(total / 12),
+        'data': products
+    }
 
 @router.get("/search")
-def search_products(q: str = Query(..., min_length=2)):
+def search_products(
+    q: str = Query(..., min_length=2),
+    page: int = Query(1 , ge = 1),
+    limit: int = Query(10, ge = 1, le = 100)
+):
+    skip = (page - 1) * limit
+
     products = collection.find({
         "name": {
             "$regex": q,
             "$options": "i"
         }
+    }).skip(skip).limit(limit)
 
-    })
     products = [serialize_mongo(p) for p in products]
-    return products
+
+    return {
+        'page': page,
+        'limit': limit,
+        'pages': ceil(len(products) / 12),
+        'data': products
+    }
 
 @router.post('')
 async def create_product(
