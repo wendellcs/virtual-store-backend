@@ -36,7 +36,7 @@ async def get_products(
     }
 
 @router.get("/search")
-def search_products(
+async def search_products(
     q: str = Query(..., min_length=2),
     page: int = Query(1 , ge = 1),
     limit: int = Query(10, ge = 1, le = 100)
@@ -69,14 +69,10 @@ async def create_product(
     productLink: str = Form(...),
     image: UploadFile = File(...)
 ):
-    
-    print('Parte 1 OKAY')
     if not image.content_type.startswith('image/'):
         raise HTTPException(400, 'Apenas imagens')
 
     result = cloudinary.uploader.upload(image.file, folder = 'produtos')
-
-    print('Parte 2 OKAY', result)
 
     product = {
         'name': name,
@@ -90,12 +86,15 @@ async def create_product(
         'views': 0,
         'created_at': str(date.today())
     }
-    print(product)
     collection.insert_one(product)
+    return {'ok': True}
 
-    print('Ultima parte ---------')
-
-
+@router.patch('/{product_id}/view')
+async def update_view(product_id: str):
+    collection.update_one(
+        {'_id': ObjectId(product_id)},
+        {'$inc':{'views': 1}})
+    
     return {'ok': True}
 
 @router.delete('/{product_id}')
@@ -104,4 +103,4 @@ async def delete_product(product_id: str , _: None = Depends(admin_guard)):
     productPublicId = collection.find({}, {'imagePublicId':1,'_id': ObjectId(product_id)})[0]['imagePublicId']
     cloudinary.uploader.destroy(productPublicId)
     collection.delete_one({'_id': ObjectId(product_id)})
-    return {'ok': True}
+    return {'message': 'Produto removido!'}
