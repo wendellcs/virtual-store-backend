@@ -35,6 +35,12 @@ async def get_products(
         'data': products
     }
 
+@router.get('/top_products')
+async def get_top_products():
+    top_products = collection.find().sort('views', -1).limit(8)
+    top_products = [serialize_mongo(p) for p in top_products]
+    return top_products
+
 @router.get("/search")
 async def search_products(
     q: str = Query(..., min_length=2),
