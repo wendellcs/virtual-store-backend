@@ -5,11 +5,21 @@ from services.auth import admin_guard
 from database.mongo import collection
 from bson.objectid import ObjectId
 from datetime import date
+import re 
+import unicodedata
 
 router = APIRouter(
     prefix='/products',
     tags=['Products']
 )
+
+def slugify(text):
+    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9]+', '-', text)
+    text = text.strip('-')
+    text = text.split('-')[:6]
+    return '-'.join(text)
 
 def serialize_mongo(doc):
     doc['_id'] = str(doc['_id'])
@@ -88,6 +98,7 @@ async def create_product(
 
     product = {
         'name': name,
+        'slug': slugify(name),
         'tag': tag,
         'price': price,
         'parts': parts,
