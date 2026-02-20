@@ -65,6 +65,12 @@ async def search_products(
         'data': products
     }
 
+@router.get('/{product_id}')
+async def get_product_by_id(product_id: str):
+    product = collection.find_one({'_id': ObjectId(product_id)})
+    product = serialize_mongo(product)
+    return product
+
 @router.post('')
 async def create_product(
     name: str = Form(...), 
