@@ -26,9 +26,7 @@ async def admin_login(data: LoginSchema, response: Response):
         samesite='none',
         max_age= 60 * 60 # 1 hora
     )
-
-    print('tudo certo')
-
+    
     return {'ok': True}
 
 @router.post('/logout')

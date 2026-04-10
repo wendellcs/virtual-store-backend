@@ -1,7 +1,14 @@
 from pydantic import BaseModel
 
-class Product(BaseModel):
-    product_name: str 
-    product_price: float 
-    product_tag: str 
-    product_image_url: str
+class ProductSchema(BaseModel):
+    name: str 
+    price: float 
+    tag: str 
+    slug: str
+    parts: int 
+    partsPrice: float
+    productLink: str 
+    imageUrl: str
+    imagePublicId: str 
+    views: int = 0
+    created_at: str

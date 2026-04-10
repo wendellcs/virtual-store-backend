@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 from dotenv import load_dotenv
-import ssl
 import os
 
 load_dotenv()

@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 from datetime import date
 import re 
 import unicodedata
+from models.product import ProductSchema
 
 router = APIRouter(
     prefix='/products',
@@ -78,10 +79,14 @@ async def search_products(
 @router.get('/{product_id}')
 async def get_product_by_id(product_id: str):
     product = collection.find_one({'_id': ObjectId(product_id)})
+    
+    if not product:
+        raise HTTPException(404, 'Produto não encontrado')
+    
     product = serialize_mongo(product)
     return product
 
-@router.post('')
+@router.post('', status_code=201)
 async def create_product(
     name: str = Form(...), 
     tag: str = Form(...),
@@ -94,25 +99,26 @@ async def create_product(
     if not image.content_type.startswith('image/'):
         raise HTTPException(400, 'Apenas imagens')
 
-    result = cloudinary.uploader.upload(image.file, folder = 'produtos')
+    cloudinary_result = cloudinary.uploader.upload(image.file, folder = 'produtos')
 
-    product = {
-        'name': name,
-        'slug': slugify(name),
-        'tag': tag,
-        'price': price,
-        'parts': parts,
-        'partsPrice': partsPrice,
-        'productLink': productLink,
-        'imageUrl': result['secure_url'],
-        'imagePublicId': result['public_id'],
-        'views': 0,
-        'created_at': str(date.today())
-    }
-    collection.insert_one(product)
+    product = ProductSchema(
+        name = name,
+        price = price,
+        tag = tag,
+        slug = slugify(name),
+        parts = parts,
+        partsPrice = partsPrice,
+        productLink = productLink,
+        imageUrl = cloudinary_result['secure_url'],
+        imagePublicId = cloudinary_result['public_id'],
+        views = 0,
+        created_at=str(date.today())
+    )
+
+    collection.insert_one(product.model_dump())
     return {'ok': True}
 
-@router.patch('/{product_id}/view')
+@router.patch('/{product_id}/view', status_code=200)
 async def update_view(product_id: str):
     collection.update_one(
         {'_id': ObjectId(product_id)},
@@ -120,10 +126,17 @@ async def update_view(product_id: str):
     
     return {'ok': True}
 
-@router.delete('/{product_id}')
+@router.delete('/{product_id}', status_code=200)
 async def delete_product(product_id: str , _: None = Depends(admin_guard)): 
-    # Mudar para find_one
-    productPublicId = collection.find({}, {'imagePublicId':1,'_id': ObjectId(product_id)})[0]['imagePublicId']
-    cloudinary.uploader.destroy(productPublicId)
+    product = collection.find_one(
+        {'_id': ObjectId(product_id)},
+        {'imagePublicId': 1}
+    )
+
+    if not product:
+        raise HTTPException(404, 'Produto não encontrado')
+
+    cloudinary.uploader.destroy(product['imagePublicId'])
     collection.delete_one({'_id': ObjectId(product_id)})
+
     return {'message': 'Produto removido!'}

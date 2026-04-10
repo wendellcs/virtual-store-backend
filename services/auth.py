@@ -1,10 +1,6 @@
 import os 
 from fastapi import HTTPException, Request
 
-def ip_allowed(client_ip: str) -> bool:
-    allowed = os.getenv('DEV_ALLOWED_IP')
-    return client_ip == allowed
-
 def valid_login_data(data: object) -> bool:
     correct_email = os.getenv('VALID_EMAIL')
     correct_password = os.getenv('VALID_PASSWORD')
